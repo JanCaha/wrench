@@ -45,7 +45,8 @@ jobs:
           export CC=cl.exe
           export CXX=cl.exe
           cmake -G Ninja \
-            -DCMAKE_INSTALL_PREFIX=$env:CONDA_PREFIX \
+            -DCMAKE_INSTALL_PREFIX="$CONDA_PREFIX" \
+            -DCMAKE_PREFIX_PATH="$CONDA_PREFIX/Library;$CONDA_PREFIX" \
             ..
 
       - name: Build pdal_wrench
