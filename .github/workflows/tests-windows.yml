@@ -12,13 +12,16 @@ jobs:
     runs-on: windows-latest
 
     steps:
+      - name: Setup MSVC environment
+        uses: ilammy/msvc-dev-cmd@v1
+
       - name: Checkout
         uses: actions/checkout@v4
 
       - uses: mamba-org/setup-micromamba@v2
         name: Setup Conda
         with:
-          init-shell: powershell
+          init-shell: bash
           environment-file: environment.yml
           environment-name: "wrench"
           cache-environment: true
@@ -28,29 +31,31 @@ jobs:
 
       - name: Add Python packages
         shell: bash -el {0}
-        run: conda install pytest GDAL vs2022 -y
+        run: conda install pytest GDAL -y
 
       - name: Create working directory
-        shell: pwsh
+        shell: bash -l {0}
         run: |
-          New-Item -ItemType Directory -Force -Path build | Out-Null
+          mkdir build
 
       - name: Run cmake
-        shell: pwsh
+        shell: bash -l {0}
         working-directory: ./build
         run: |
-          cmake -G Ninja `
-            -DCMAKE_INSTALL_PREFIX=$env:CONDA_PREFIX `
+          export CC=cl.exe
+          export CXX=cl.exe
+          cmake -G Ninja \
+            -DCMAKE_INSTALL_PREFIX=$env:CONDA_PREFIX \
             ..
 
       - name: Build pdal_wrench
-        shell: pwsh
+        shell: bash -l {0}
         working-directory: ./build
         run: |
           ninja
           ninja install
 
       - name: Run tests
-        shell: pwsh
+        shell: bash -l {0}
         run: |
           pytest tests -vv
