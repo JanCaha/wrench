@@ -12,20 +12,23 @@ jobs:
     runs-on: windows-latest
 
     steps:
-
       - name: Checkout
         uses: actions/checkout@v4
 
       - uses: mamba-org/setup-micromamba@v2
         name: Setup Conda
         with:
-            init-shell: powershell
-            environment-file: environment.yml
-            environment-name: "wrench"
-            cache-environment: true
-            cache-downloads: true
-            create-args: >-
-              python=3.12
+          init-shell: powershell
+          environment-file: environment.yml
+          environment-name: "wrench"
+          cache-environment: true
+          cache-downloads: true
+          create-args: >-
+            python=3.12
+
+      - name: Add Python packages
+        shell: bash -el {0}
+        run: conda install pytest GDAL vs2022 -y
 
       - name: Create working directory
         shell: pwsh
@@ -50,5 +53,4 @@ jobs:
       - name: Run tests
         shell: pwsh
         run: |
-            pytest tests -vv
-          
+          pytest tests -vv
