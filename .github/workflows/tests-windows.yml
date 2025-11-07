@@ -1,0 +1,54 @@
+name: Test
+
+on: [push, pull_request]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Run Python Tests (Windows)
+    runs-on: windows-latest
+
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - uses: mamba-org/setup-micromamba@v2
+        name: Setup Conda
+        with:
+            init-shell: powershell
+            environment-file: environment.yml
+            environment-name: "wrench"
+            cache-environment: true
+            cache-downloads: true
+            create-args: >-
+              python=3.12
+
+      - name: Create working directory
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path build | Out-Null
+
+      - name: Run cmake
+        shell: pwsh
+        working-directory: ./build
+        run: |
+          cmake -G Ninja `
+            -DCMAKE_INSTALL_PREFIX=$env:CONDA_PREFIX `
+            ..
+
+      - name: Build pdal_wrench
+        shell: pwsh
+        working-directory: ./build
+        run: |
+          ninja
+          ninja install
+
+      - name: Run tests
+        shell: pwsh
+        run: |
+            pytest tests -vv
+          
